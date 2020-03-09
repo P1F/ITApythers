@@ -13,6 +13,6 @@ if __name__ == '__main__':
     screenManager = config.Screen()
     soundManager = config.SoundPlayer()
 
-    screen = pygame.Surface((640, 480), 0, 32)
-    menu = menu.MainMenu(screen, screenManager, soundManager, Point(80, 150))
+    screen = pygame.Surface((320, 240), 0, 32)
+    menu = menu.MainMenu(screen, screenManager, soundManager, Point(90, 160), 'MenuScreen.png')
     menu.mainloop()
