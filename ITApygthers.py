@@ -2,7 +2,6 @@ import config
 import pygame
 import menu
 from game import Point
-import time
 
 if __name__ == '__main__':
     print('carregando...')

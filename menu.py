@@ -1,30 +1,8 @@
 from game import Point, SpriteSheetLoader
-import config
+import fight
 import pygame
+import char
 from pygame.locals import *
-
-class Fight_stats:
-    def __init__(self):
-        self.wins_P1 = 0
-        self.rounds_P1 = 0
-        self.wins_P2 = 0
-        self.rounds_P2 = 0
-        self.draws = 0
-        self.lastwin = 0
-
-    def update(self, tuple):
-        rounds_P1, rounds_P2 = tuple[0], tuple[1]
-        if rounds_P1 == rounds_P2:
-            self.draws += 1
-            self.lastwin = 0
-        elif rounds_P1 > rounds_P2:
-            self.wins_P1 += 1
-            self.lastwin = 1
-        else:
-            self.wins_P2 += 1
-            self.lastwin = 2
-        self.rounds_P1 += rounds_P1
-        self.rounds_P2 += rounds_P2
 
 
 class Text:
@@ -112,7 +90,6 @@ class MainMenu(Menu):
         self.background = background
         self.addElt(MenuElt('Jogar', self.call_game))
         self.addElt(MenuElt('Créditos', self.call_credits))
-        self.fight_stats = Fight_stats()
 
     def addElt(self, elt):
         elt.position = self.position + (15, 3+len(self.options)*16)
@@ -156,27 +133,6 @@ class MainMenu(Menu):
         self.right()
 
 
-class CharIcon:
-    def __init__(self, name, rgb, index):
-        self.name = name
-        self.position = None
-        self.rgb = rgb
-        self.index = index
-
-    def print_me(self, screen):
-        iconimg = pygame.image.load('personagens//' + str(self.index) + '//icon.png').convert_alpha()
-        iconimg = pygame.transform.scale(iconimg, (32, 24))
-        icon = pygame.Surface((32, 24))
-        icon.fill(self.rgb)
-        icon.blit(iconimg, (0, 0))
-        screen.blit(icon, self.position.value())
-
-    def print_selected(self, screen, position):
-        iconimg = pygame.image.load('personagens//' + str(self.index) + '//icon.png').convert_alpha()
-        iconimg = pygame.transform.scale(iconimg, (98, 98))
-        screen.blit(iconimg, position.value())
-
-
 class CharMenu(Menu):
     def __init__(self, screen, screenManager, soundManager, cursor, position, selectedposition):
         soundManager.play_music('char.mp3')
@@ -184,18 +140,18 @@ class CharMenu(Menu):
         self.selectedposition = selectedposition
         self.selected = False
         self.cursorpath = cursor
-        self.addChar(CharIcon('Pelá', (0, 100, 0), 1))
-        self.addChar(CharIcon('José', (0, 0, 100), 2))
-        self.addChar(CharIcon('Mario', (100, 0, 0), 3))
-        self.addChar(CharIcon('Luigi', (100, 100, 100), 4))
+        self.addChar(char.Char('Pelá', (0, 100, 0), 1))
+        self.addChar(char.Char('José', (0, 0, 100), 2))
+        self.addChar(char.Char('Mario', (100, 0, 0), 3))
+        self.addChar(char.Char('Luigi', (100, 100, 100), 4))
 
-    def addChar(self, charicon):
-        charicon.position = self.position + ((len(self.options)%2)*32, int(len(self.options)/2)*24)
-        self.options.append(charicon)
+    def addChar(self, char):
+        char.position = self.position + ((len(self.options)%2)*32, int(len(self.options)/2)*24)
+        self.options.append(char)
 
     def print_me(self):
-        for charicon in self.options:
-            charicon.print_me(self.screen)
+        for char in self.options:
+            char.print_icon(self.screen)
 
         self.options[self.choice].print_selected(self.screen, self.selectedposition)
 
@@ -259,8 +215,9 @@ class CharSelector:
         background = pygame.image.load('img/Background/' + self.background).convert()
         while True:
             if self.p1.selected and self.p2.selected:
-                pygame.time.wait(2000)
-                print('comecar luta')
+                #pygame.time.wait(2000)
+                luta = fight.FightManager(self.p1.options[self.p1.choice], self.p2.options[self.p2.choice], self.screen, self.screenManager, self.soundManager)
+                luta.mainloop()
             for event in pygame.event.get():
                 if event.type == QUIT:
                     exit()
