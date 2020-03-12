@@ -146,14 +146,16 @@ class CharMenu(Menu):
         self.addChar(char.Char('Luigi', (100, 100, 100), 4))
 
     def addChar(self, char):
-        char.position = self.position + ((len(self.options)%2)*32, int(len(self.options)/2)*24)
+        char.icon.position = self.position + ((len(self.options)%2)*32, int(len(self.options)/2)*24)
         self.options.append(char)
 
     def print_me(self):
         for char in self.options:
-            char.print_icon(self.screen)
+            char.icon.print_me(self.screen)
 
-        self.options[self.choice].print_selected(self.screen, self.selectedposition)
+        iconimg = pygame.image.load('personagens//' + str(self.options[self.choice].index) + '//icon.png').convert_alpha()
+        iconimg = pygame.transform.scale(iconimg, (98, 98))
+        self.screen.blit(iconimg, self.selectedposition.value())
 
         if self.cursor is not None:
             cursor_pos = self.position - (3, 2) + ((self.choice%2)*32, (int(self.choice/2))*24)
