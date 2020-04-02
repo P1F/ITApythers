@@ -13,7 +13,6 @@ class Text:
         self.sprite = self.convert()
 
     def convert(self):
-        assert (isinstance(self.string, str))
         length = len(self.string)
         sprite = pygame.Surface((15 * (length + 1), 32)).convert_alpha()
         sprite.fill((0, 0, 0, 0))
