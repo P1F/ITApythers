@@ -27,16 +27,24 @@ class FightManager:
     def mainloop(self):
         background = pygame.image.load('img/Background/' + self.getRandBackground()).convert()
         t0 = pygame.time.get_ticks()
+
         while True:
             keys = pygame.key.get_pressed()
+
             if keys[K_RIGHT]:
                 self.p2.right()
-            if keys[K_LEFT]:
+            elif keys[K_LEFT]:
                 self.p2.left()
+            else:
+                self.p2.standing()
+
             if keys[K_d]:
                 self.p1.right()
-            if keys[K_a]:
+            elif keys[K_a]:
                 self.p1.left()
+            else:
+                self.p1.standing()
+
             if keys[K_UP]:
                 if not self.p2.jumping:
                     self.p2.jumping = True

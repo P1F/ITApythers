@@ -239,7 +239,7 @@ class CharSelector:
                         self.p2.right()
                     if event.key == K_LEFT:
                         self.p2.left()
-                    if event.key == K_RETURN:
+                    if event.key == K_RETURN and not self.p2.selected:
                         self.p2.enter()
                     if event.key == K_BACKSPACE:
                         self.p2.cancel()
@@ -251,7 +251,7 @@ class CharSelector:
                         self.p1.right()
                     if event.key == K_a:
                         self.p1.left()
-                    if event.key == K_TAB:
+                    if event.key == K_TAB and not self.p1.selected:
                         self.p1.enter()
                     if event.key == K_q:
                         self.p1.cancel()
