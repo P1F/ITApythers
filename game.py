@@ -28,20 +28,6 @@ class Point:
         else:
             return Point(self.x - other.x, self.y - other.y)
 
-    def __mul__(self, other):
-        assert (isinstance(other, int))
-        return Point(self.x * other, self.y * other)
-
-    def __floordiv__(self, other):
-        return self.__truediv__(other)
-
-    def __truediv__(self, other):
-        assert (isinstance(other, int))
-        return Point(self.x // other, self.y // other)
-
-    def __str__(self):
-        return "Point({0}, {1})".format(self.x, self.y)
-
 
 class SpriteSheetLoader:
     def __init__(self, file, sprite_width, sprite_height, fullsheet = False):

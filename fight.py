@@ -30,13 +30,13 @@ class FightManager:
         while True:
             keys = pygame.key.get_pressed()
             if keys[K_RIGHT]:
-                self.p2.right()
+                self.p2.right(self.p1.hitbox)
             if keys[K_LEFT]:
-                self.p2.left()
+                self.p2.left(self.p1.hitbox)
             if keys[K_d]:
-                self.p1.right()
+                self.p1.right(self.p2.hitbox)
             if keys[K_a]:
-                self.p1.left()
+                self.p1.left(self.p2.hitbox)
             if keys[K_UP]:
                 if not self.p2.jumping:
                     self.p2.jumping = True
@@ -57,9 +57,9 @@ class FightManager:
             time = pygame.time.get_ticks()
 
             if self.p1.jumping:
-                self.p1.jump(time - t1)
+                self.p1.jump(time - t1, self.p2.hitbox)
             if self.p2.jumping:
-                self.p2.jump(time - t2)
+                self.p2.jump(time - t2, self.p1.hitbox)
 
             self.clock.update(time - t0)
 
@@ -72,8 +72,8 @@ class FightManager:
 class Clock:
     def __init__(self):
         self.time_left = 90
-        self.has_changed = False
-        self.text = menu.Text('90', Point(144, 8))
+        self.has_changed = True
+        self.text = menu.Text('', Point(144, 8))
 
     def update(self, delta):
         new_time = round(90 - delta/1000)
