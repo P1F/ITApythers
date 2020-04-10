@@ -29,22 +29,30 @@ class FightManager:
         t0 = pygame.time.get_ticks()
         while True:
             keys = pygame.key.get_pressed()
-            if keys[K_RIGHT]:
-                self.p2.right(self.p1.hitbox)
-            if keys[K_LEFT]:
-                self.p2.left(self.p1.hitbox)
             if keys[K_d]:
                 self.p1.right(self.p2.hitbox)
             if keys[K_a]:
                 self.p1.left(self.p2.hitbox)
-            if keys[K_UP]:
-                if not self.p2.jumping:
-                    self.p2.jumping = True
-                    t2 = pygame.time.get_ticks()
             if keys[K_w]:
                 if not self.p1.jumping:
                     self.p1.jumping = True
-                    t1 = pygame.time.get_ticks()
+                    t1jump = pygame.time.get_ticks()
+            if keys[K_e]:
+                if not self.p1.punch_animation:
+                    self.p1.punching = self.p1.punch_animation = True
+                    t1punch = pygame.time.get_ticks()
+            if keys[K_RIGHT]:
+                self.p2.right(self.p1.hitbox)
+            if keys[K_LEFT]:
+                self.p2.left(self.p1.hitbox)
+            if keys[K_UP]:
+                if not self.p2.jumping:
+                    self.p2.jumping = True
+                    t2jump = pygame.time.get_ticks()
+            if keys[K_RSHIFT]:
+                if not self.p2.punch_animation:
+                    self.p2.punching = self.p2.punch_animation = True
+                    t2punch = pygame.time.get_ticks()
 
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
@@ -57,9 +65,13 @@ class FightManager:
             time = pygame.time.get_ticks()
 
             if self.p1.jumping:
-                self.p1.jump(time - t1, self.p2.hitbox)
+                self.p1.jump(time - t1jump, self.p2.hitbox)
+            if self.p1.punch_animation:
+                self.p1.punch(time - t1punch, self.p2)
             if self.p2.jumping:
-                self.p2.jump(time - t2, self.p1.hitbox)
+                self.p2.jump(time - t2jump, self.p1.hitbox)
+            if self.p2.punch_animation:
+                self.p2.punch(time - t2punch, self.p1)
 
             self.clock.update(time - t0)
 

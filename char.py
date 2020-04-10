@@ -1,5 +1,5 @@
 import pygame
-from game import SpriteSheetLoader
+from game import SpriteSheetLoader, Point
 
 
 #checks if lines x and y collide, with y >= x
@@ -25,13 +25,19 @@ class Char:
         self.index = index
 
         self.jumping = False
+        self.punching = self.punch_animation = False
 
-    def load(self, player_one):
+        self.sprites = self.spriteline = self.spritecolumn = self.hitbox = self.health = None
+
+    def load(self, is_left_player):
         self.sprites = SpriteSheetLoader('personagens//' + str(self.index) + '//sprites.png', 120, 100).getSpriteList()
         self.spriteline = 0
         self.spritecolumn = 0
-        self.hitbox = Hitbox(30, 40, player_one)
-        self.health = HealthBar(player_one)
+        if is_left_player:
+            self.hitbox = Hitbox(30, 40, Point(45, 200), True)
+        else:
+            self.hitbox = Hitbox(30, 40, Point(245, 200), False)
+        self.health = HealthBar(is_left_player)
 
     def right(self, other):
         self.hitbox.x += 0.2
@@ -48,16 +54,35 @@ class Char:
         if deltah < 0:
             self.jumping = False
             self.hitbox.y = self.hitbox.ground
+            self.hitbox.update_side(other)
             if collide(self.hitbox, other):
-                if self.hitbox.x > other.x:
-                    self.hitbox.x = other.x + other.width + 1
-                else:
+                if self.hitbox.is_left_player:
                     self.hitbox.x = other.x - other.width - 1
+                else:
+                    self.hitbox.x = other.x + other.width + 1
             return
         self.hitbox.y = self.hitbox.ground - deltah
 
+    def punch(self, delta, other):
+        self.spriteline = 21
+        if delta > 150 and self.punching:
+            self.spritecolumn = 1
+            if self.hitbox.is_left_player:
+                hitbox = Hitbox(18, 30, Point(self.hitbox.x + self.hitbox.width, self.hitbox.y))
+            else:
+                hitbox = Hitbox(18, 30, Point(self.hitbox.x - 18, self.hitbox.y))
+            if collide(hitbox, other.hitbox):
+                other.health.take_damage(10)
+            self.punching = False
+        elif delta>250:
+            self.spriteline = self.spritecolumn = 0
+            self.punch_animation = False
+
     def print_me(self, screen):
-        screen.blit(self.sprites[self.spriteline][self.spritecolumn], self.hitbox.get_print_pos())
+        sprite = self.sprites[self.spriteline][self.spritecolumn]
+        if not self.hitbox.is_left_player:
+            sprite = pygame.transform.flip(sprite, True, False)
+        screen.blit(sprite, self.hitbox.get_print_pos())
         self.health.print_me(screen)
 
 
@@ -75,35 +100,60 @@ class CharIcon:
 
 
 class HealthBar:
-    def __init__(self, player_one):
+    def __init__(self, is_left_player):
         self.value = 100
         self.img = pygame.image.load('img//healthbar.png').convert_alpha()
-        self.player_one = player_one
+        self.redbar = pygame.image.load('img//redbar.png').convert_alpha()
+        self.damage = 0
+        self.is_left_player = is_left_player
 
-    def get_position(self, player_one, health_bar_width):
-        if player_one:
+    def get_health_bar_position(self, is_left_player, health_bar_width):
+        if is_left_player:
             return 143-health_bar_width, 10
         else:
             return 177, 10
 
+    def get_red_bar_position(self, is_left_player, health_bar_position, health_bar_width, red_bar_width):
+        if is_left_player:
+            return health_bar_position[0] - red_bar_width, health_bar_position[1]
+        else:
+            return health_bar_position[0] + health_bar_width - 1, health_bar_position[1]
+
+    def take_damage(self, dmg):
+        self.value -= dmg
+        self.damage += dmg
+
     def print_me(self, screen):
-        health_bar_width = int(140*self.value/100)
-        img = pygame.transform.scale(self.img, (health_bar_width, 12))
-        screen.blit(img, self.get_position(self.player_one, health_bar_width))
+        health_bar_width = int(140 * self.value / 100)
+        health_bar_position = self.get_health_bar_position(self.is_left_player, health_bar_width)
+        if self.damage > 0:
+            red_bar_width = int(140 * self.damage / 100) + 1
+            red_bar = pygame.transform.scale(self.redbar, (red_bar_width, 10))
+            screen.blit(red_bar, self.get_red_bar_position(self.is_left_player, health_bar_position, health_bar_width, red_bar_width))
+            self.damage -= 0.01
+
+        health_bar_width = int(140 * self.value / 100)
+        health_bar = pygame.transform.scale(self.img, (health_bar_width, 12))
+        screen.blit(health_bar, health_bar_position)
 
 
 class Hitbox:
-    def __init__(self, width, height, player_one):
+    def __init__(self, width, height, position, is_left_player = None):
         self.width = width
         self.height = height
-        self.ground = 200
+        self.is_left_player = is_left_player
         #coordinates for the upper left point of the hitbox
-        if player_one:
-            self.x = 45
-        else:
-            self.x = 245
-        self.y = 200
+        self.x = position.x
+        self.y = self.ground = position.y
 
     def get_print_pos(self):
         return self.x - 45, self.y - 60
+
+    def update_side(self, other):
+        if self.x < other.x:
+            self.is_left_player = True
+            other.is_left_player = False
+        else:
+            self.is_left_player = False
+            other.is_left_player = True
 
