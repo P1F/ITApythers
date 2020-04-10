@@ -2,6 +2,34 @@ import pygame
 from game import SpriteSheetLoader, Point
 
 
+red = (255, 0, 0)
+green = (0, 255, 0)
+blue = (0, 0, 255)
+
+
+class HitBox:
+    def __init__(self, position, color, width, height):
+        self.position = position
+        self.color = color
+        self.width = width
+        self.height = height
+
+    def refresh(self, player):
+        if player.jumping:
+            self.width = 29
+            self.height = 50
+            self.position = player.position + (50, 50)
+        else:
+            self.width = 29
+            self.height = 40
+            self.position = player.position + (45, 60)
+
+
+    def draw(self, player, screen):
+        self.refresh(player)
+        pygame.draw.rect(screen, self.color, (self.position.x, self.position.y, self.width, self.height), 1)
+
+
 class Char:
     def __init__(self, name, rgb, index):
         self.icon = CharIcon(rgb, index)
@@ -18,14 +46,19 @@ class Char:
 
         self.jumping = False
 
+        self.hitbox = None
+
     def load(self, player_one):
         self.sprites = SpriteSheetLoader('personagens//' + str(self.index) + '//sprites.png', 120, 100).getSpriteList()
         if player_one:
             self.position = Point(0, 140)
+            color = red
         else:
             self.position = Point(200, 140)
+            color = green
         self.height = self.position.y
         self.health = HealthBar(player_one)
+        self.hitbox = HitBox(self.position, color, 29, 40)
 
     def right(self):
         if not self.jumping:
@@ -88,6 +121,7 @@ class Char:
     def print_me(self, screen):
         screen.blit(self.sprites[self.spriteline][self.spritecolumn//60], self.position.value())
         self.health.print_me(screen)
+        self.hitbox.draw(self, screen)
 
 
 class CharIcon:
