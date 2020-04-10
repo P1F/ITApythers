@@ -102,3 +102,17 @@ class Clock:
             self.text.sprite = self.text.convert()
             self.has_changed = False
         self.text.print_me(screen)
+
+
+class Collision:
+    def __init__(self, hitbox1, hitbox2):
+        self.hitbox1 = hitbox1
+        self.hitbox2 = hitbox2
+
+    def collide(self):
+        center1 = Point(self.hitbox1.position.x + self.hitbox1.width/2, self.hitbox1.position.y + self.hitbox1.height/2)
+        center2 = Point(self.hitbox2.position.x + self.hitbox2.width/2, self.hitbox2.position.y + self.hitbox2.height/2)
+        x_collide = True if abs(center1.x - center2.x) <= (self.hitbox1.width + self.hitbox2.width)/2 else False
+        y_collide = True if abs(center1.y - center2.y) <= (self.hitbox1.height + self.hitbox2.height)/2 else False
+
+        return x_collide and y_collide
