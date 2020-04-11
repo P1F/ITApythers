@@ -45,6 +45,7 @@ class Char:
         self.spritecolumn = 0
 
         self.jumping = False
+        self.facing_left = None
 
         self.hitbox = None
 
@@ -53,9 +54,11 @@ class Char:
         if player_one:
             self.position = Point(0, 140)
             color = red
+            self.facing_left = False
         else:
             self.position = Point(200, 140)
             color = green
+            self.facing_left = True
         self.height = self.position.y
         self.health = HealthBar(player_one)
         self.hitbox = HitBox(self.position, color, 29, 40)
@@ -119,7 +122,8 @@ class Char:
             self.spriteline = 6
 
     def print_me(self, screen):
-        screen.blit(self.sprites[self.spriteline][self.spritecolumn//60], self.position.value())
+        sprite = self.sprites[self.spriteline][self.spritecolumn//60]
+        screen.blit(pygame.transform.flip(sprite, self.facing_left, False), self.position.value())
         self.health.print_me(screen)
         self.hitbox.draw(self, screen)
 

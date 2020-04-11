@@ -20,6 +20,12 @@ class FightManager:
         return str(randint(1, 4)) + '.png'
 
     def print_me(self):
+        if self.p1.position.x < self.p2.position.x:
+            self.p1.facing_left = False
+        else:
+            self.p1.facing_left = True
+        self.p2.facing_left = not self.p1.facing_left
+
         self.p1.print_me(self.screen)
         self.p2.print_me(self.screen)
         self.clock.print_me(self.screen)
