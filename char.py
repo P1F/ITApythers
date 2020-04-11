@@ -7,29 +7,6 @@ green = (0, 255, 0)
 blue = (0, 0, 255)
 
 
-class HitBox:
-    def __init__(self, position, color, width, height):
-        self.position = position
-        self.color = color
-        self.width = width
-        self.height = height
-
-    def refresh(self, player):
-        if player.jumping:
-            self.width = 29
-            self.height = 50
-            self.position = player.position + (50, 50)
-        else:
-            self.width = 29
-            self.height = 40
-            self.position = player.position + (45, 60)
-
-
-    def draw(self, player, screen):
-        self.refresh(player)
-        pygame.draw.rect(screen, self.color, (self.position.x, self.position.y, self.width, self.height), 1)
-
-
 class Char:
     def __init__(self, name, rgb, index):
         self.icon = CharIcon(rgb, index)
@@ -46,6 +23,8 @@ class Char:
 
         self.jumping = False
         self.facing_left = None
+        self.going_right = False
+        self.going_left = False
 
         self.hitbox = None
 
@@ -77,6 +56,9 @@ class Char:
         if new.x < 240:
             self.position = new
 
+        self.going_right = True
+        self.going_left = False
+
     def left(self):
         if not self.jumping:
             if self.spriteline != 1:
@@ -91,15 +73,8 @@ class Char:
         if new.x > -40:
             self.position = new
 
-    def standing(self):
-        if not self.jumping:
-            if self.spriteline != 0:
-                self.spriteline = 0
-                self.spritecolumn = 0
-            else:
-                self.spritecolumn += 1
-                if self.spritecolumn > 239:
-                    self.spritecolumn = 0
+        self.going_right = False
+        self.going_left = True
 
     def jump(self, delta):
         if not 6 <= self.spriteline <= 7:
@@ -121,11 +96,55 @@ class Char:
         if self.spriteline == 7 and self.position.y != last_pos and dy_dt < 10 ** -2:
             self.spriteline = 6
 
+        if self.going_right:
+            new = self.position + (0.2, 0)
+            if new.x < 240:
+                self.position = new
+        if self.going_left:
+            new = self.position - (0.2, 0)
+            if new.x > -40:
+                self.position = new
+
     def print_me(self, screen):
         sprite = self.sprites[self.spriteline][self.spritecolumn//60]
         screen.blit(pygame.transform.flip(sprite, self.facing_left, False), self.position.value())
         self.health.print_me(screen)
         self.hitbox.draw(self, screen)
+
+    def standing(self):
+        if not self.jumping:
+            if self.spriteline != 0:
+                self.spriteline = 0
+                self.spritecolumn = 0
+            else:
+                self.spritecolumn += 1
+                if self.spritecolumn > 239:
+                    self.spritecolumn = 0
+
+        self.going_right = False
+        self.going_left = False
+
+
+class HitBox:
+    def __init__(self, position, color, width, height):
+        self.position = position
+        self.color = color
+        self.width = width
+        self.height = height
+        self.center = Point(self.position.x + self.width / 2, self.position.y + self.height / 2)
+
+    def refresh(self, player):
+        if player.jumping:
+            self.height = 50
+            self.position = player.position + (45, 50)
+        else:
+            self.height = 40
+            self.position = player.position + (45, 60)
+        self.center = Point(self.position.x + self.width / 2, self.position.y + self.height / 2)
+
+    def draw(self, player, screen):
+        self.refresh(player)
+        pygame.draw.rect(screen, self.color, (self.position.x, self.position.y, self.width, self.height), 1)
 
 
 class CharIcon:

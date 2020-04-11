@@ -20,7 +20,7 @@ class FightManager:
         return str(randint(1, 4)) + '.png'
 
     def print_me(self):
-        if self.p1.position.x < self.p2.position.x:
+        if self.p1.position.x < self.p2.position.x - 1:
             self.p1.facing_left = False
         else:
             self.p1.facing_left = True
@@ -33,23 +33,26 @@ class FightManager:
     def mainloop(self):
         background = pygame.image.load('img/Background/' + self.getRandBackground()).convert()
         t0 = pygame.time.get_ticks()
+        hitboxes = Collision(self.p1.hitbox, self.p2.hitbox)
 
         while True:
             keys = pygame.key.get_pressed()
 
-            if keys[K_RIGHT]:
-                self.p2.right()
-            elif keys[K_LEFT]:
-                self.p2.left()
-            else:
-                self.p2.standing()
+            if not self.p2.jumping:
+                if keys[K_RIGHT]:
+                    self.p2.right()
+                elif keys[K_LEFT]:
+                    self.p2.left()
+                else:
+                    self.p2.standing()
 
-            if keys[K_d]:
-                self.p1.right()
-            elif keys[K_a]:
-                self.p1.left()
-            else:
-                self.p1.standing()
+            if not self.p1.jumping:
+                if keys[K_d]:
+                    self.p1.right()
+                elif keys[K_a]:
+                    self.p1.left()
+                else:
+                    self.p1.standing()
 
             if keys[K_UP]:
                 if not self.p2.jumping:
@@ -78,7 +81,7 @@ class FightManager:
             self.clock.update(time - t0)
 
             self.screen.fill((0, 0, 0))
-            #self.screen.blit(background, (0, 0))
+            # self.screen.blit(background, (0, 0))
             self.print_me()
             self.screenManager.display_update(self.screen)
 
@@ -90,7 +93,7 @@ class Clock:
         self.text = menu.Text('90', Point(144, 8))
 
     def update(self, delta):
-        new_time = round(90 - delta/1000)
+        new_time = round(90 - delta / 1000)
         if new_time != self.time_left:
             self.time_left = new_time
             self.has_changed = True
@@ -116,9 +119,9 @@ class Collision:
         self.hitbox2 = hitbox2
 
     def collide(self):
-        center1 = Point(self.hitbox1.position.x + self.hitbox1.width/2, self.hitbox1.position.y + self.hitbox1.height/2)
-        center2 = Point(self.hitbox2.position.x + self.hitbox2.width/2, self.hitbox2.position.y + self.hitbox2.height/2)
-        x_collide = True if abs(center1.x - center2.x) <= (self.hitbox1.width + self.hitbox2.width)/2 else False
-        y_collide = True if abs(center1.y - center2.y) <= (self.hitbox1.height + self.hitbox2.height)/2 else False
+        x_collide = True if abs(self.hitbox1.center.x - self.hitbox2.center.x) <= \
+                            (self.hitbox1.width + self.hitbox2.width) / 2 else False
+        y_collide = True if abs(self.hitbox1.center.y - self.hitbox2.center.y) <= \
+                            (self.hitbox1.height + self.hitbox2.height) / 2 else False
 
         return x_collide and y_collide
