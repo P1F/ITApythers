@@ -125,28 +125,6 @@ class Char:
         self.going_left = False
 
 
-class HitBox:
-    def __init__(self, position, color, width, height):
-        self.position = position
-        self.color = color
-        self.width = width
-        self.height = height
-        self.center = Point(self.position.x + self.width / 2, self.position.y + self.height / 2)
-
-    def refresh(self, player):
-        if player.jumping:
-            self.height = 50
-            self.position = player.position + (45, 50)
-        else:
-            self.height = 40
-            self.position = player.position + (45, 60)
-        self.center = Point(self.position.x + self.width / 2, self.position.y + self.height / 2)
-
-    def draw(self, player, screen):
-        self.refresh(player)
-        pygame.draw.rect(screen, self.color, (self.position.x, self.position.y, self.width, self.height), 1)
-
-
 class CharIcon:
     def __init__(self, rgb, index):
         self.rgb = rgb
@@ -177,3 +155,25 @@ class HealthBar:
         health_bar_width = int(140 * self.health / 100)
         img = pygame.transform.scale(self.img, (health_bar_width, 12))
         screen.blit(img, self.get_position(self.player_one, health_bar_width))
+
+
+class HitBox:
+    def __init__(self, position, color, width, height):
+        self.position = position
+        self.color = color
+        self.width = width
+        self.height = height
+        self.center = Point(self.position.x + self.width / 2, self.position.y + self.height / 2)
+
+    def refresh(self, player):
+        if player.jumping:
+            self.height = 50
+            self.position = player.position + (45, 50)
+        else:
+            self.height = 40
+            self.position = player.position + (45, 60)
+        self.center.x, self.center.y = self.position.x + self.width / 2, self.position.y + self.height / 2
+
+    def draw(self, player, screen):
+        self.refresh(player)
+        pygame.draw.rect(screen, self.color, (self.position.x, self.position.y, self.width, self.height), 1)

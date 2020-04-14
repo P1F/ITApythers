@@ -20,7 +20,7 @@ class FightManager:
         return str(randint(1, 4)) + '.png'
 
     def print_me(self):
-        if self.p1.position.x < self.p2.position.x - 1:
+        if self.p1.position.x < self.p2.position.x:
             self.p1.facing_left = False
         else:
             self.p1.facing_left = True
@@ -33,10 +33,10 @@ class FightManager:
     def mainloop(self):
         background = pygame.image.load('img/Background/' + self.getRandBackground()).convert()
         t0 = pygame.time.get_ticks()
-        hitboxes = Collision(self.p1.hitbox, self.p2.hitbox)
 
         while True:
             keys = pygame.key.get_pressed()
+            players = Motion(self.p1, self.p2)
 
             if not self.p2.jumping:
                 if keys[K_RIGHT]:
@@ -78,6 +78,8 @@ class FightManager:
             if self.p2.jumping:
                 self.p2.jump(time - t2)
 
+            players.collide_verify()
+
             self.clock.update(time - t0)
 
             self.screen.fill((0, 0, 0))
@@ -117,11 +119,55 @@ class Collision:
     def __init__(self, hitbox1, hitbox2):
         self.hitbox1 = hitbox1
         self.hitbox2 = hitbox2
+        self.center_dist = Point(abs(self.hitbox1.center.x - self.hitbox2.center.x),
+                                 abs(self.hitbox1.center.y - self.hitbox2.center.y))
+        self.width_sum = (self.hitbox1.width + self.hitbox2.width)
+        self.height_sum = (self.hitbox1.height + self.hitbox2.height)
 
     def collide(self):
-        x_collide = True if abs(self.hitbox1.center.x - self.hitbox2.center.x) <= \
-                            (self.hitbox1.width + self.hitbox2.width) / 2 else False
-        y_collide = True if abs(self.hitbox1.center.y - self.hitbox2.center.y) <= \
-                            (self.hitbox1.height + self.hitbox2.height) / 2 else False
+        x_collide = True if self.center_dist.x <= self.width_sum / 2 else False
+        y_collide = True if self.center_dist.y <= self.height_sum / 2 else False
 
         return x_collide and y_collide
+
+
+class Motion:
+    def __init__(self, p1, p2):
+        self.p1 = p1
+        self.p2 = p2
+        self.hitboxes = Collision(self.p1.hitbox, self.p2.hitbox)
+
+    def both_getting_closer(self):
+        return (self.p1.going_right and not self.p1.facing_left and self.p2.going_left) or \
+               (self.p1.going_left and self.p1.facing_left and self.p2.going_right)
+
+    def both_jumping(self):
+        return self.p1.jumping and self.p2.jumping
+
+    def separate(self):
+        if self.p1.facing_left:
+            self.p1.right()
+            self.p2.left()
+        else:
+            self.p1.left()
+            self.p2.right()
+
+    def collide_verify(self):
+        if self.hitboxes.collide():
+            if not self.both_jumping() and not self.both_getting_closer():
+                if self.hitboxes.center_dist.x - self.hitboxes.width_sum / 2 > -10 ** -1:
+                    if self.p1.going_right and not self.p1.facing_left:
+                        self.p2.right()
+                    if self.p1.going_left and self.p1.facing_left:
+                        self.p2.left()
+                    if self.p2.going_right and not self.p2.facing_left:
+                        self.p1.right()
+                    if self.p2.going_left and self.p2.facing_left:
+                        self.p1.left()
+                else:
+                    self.separate()
+            elif self.both_jumping():
+                self.p1.going_left = False
+                self.p1.going_right = False
+                self.p2.going_left = False
+                self.p2.going_right = False
