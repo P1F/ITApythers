@@ -4,6 +4,9 @@ from pygame.locals import *
 from game import Point
 import menu
 
+get_keys_p1 = True
+get_keys_p2 = True
+
 
 class FightManager:
     def __init__(self, p1, p2, screen, screenManager, soundManager):
@@ -33,35 +36,36 @@ class FightManager:
     def mainloop(self):
         background = pygame.image.load('img/Background/' + self.getRandBackground()).convert()
         t0 = pygame.time.get_ticks()
+        players = Motion(self.p1, self.p2)
 
         while True:
             keys = pygame.key.get_pressed()
-            players = Motion(self.p1, self.p2)
 
-            if not self.p2.jumping:
-                if keys[K_RIGHT]:
-                    self.p2.right()
-                elif keys[K_LEFT]:
-                    self.p2.left()
-                else:
-                    self.p2.standing()
-
-            if not self.p1.jumping:
-                if keys[K_d]:
-                    self.p1.right()
-                elif keys[K_a]:
-                    self.p1.left()
-                else:
-                    self.p1.standing()
-
-            if keys[K_UP]:
-                if not self.p2.jumping:
-                    self.p2.jumping = True
-                    t2 = pygame.time.get_ticks()
-            if keys[K_w]:
+            if get_keys_p1:
                 if not self.p1.jumping:
-                    self.p1.jumping = True
-                    t1 = pygame.time.get_ticks()
+                    if keys[K_d]:
+                        self.p1.right()
+                    elif keys[K_a]:
+                        self.p1.left()
+                    else:
+                        self.p1.standing()
+                if keys[K_w]:
+                    if not self.p1.jumping:
+                        self.p1.jumping = True
+                        t1 = pygame.time.get_ticks()
+
+            if get_keys_p2:
+                if not self.p2.jumping:
+                    if keys[K_RIGHT]:
+                        self.p2.right()
+                    elif keys[K_LEFT]:
+                        self.p2.left()
+                    else:
+                        self.p2.standing()
+                if keys[K_UP]:
+                    if not self.p2.jumping:
+                        self.p2.jumping = True
+                        t2 = pygame.time.get_ticks()
 
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
@@ -78,7 +82,7 @@ class FightManager:
             if self.p2.jumping:
                 self.p2.jump(time - t2)
 
-            players.collide_verify()
+            players.collide_motion()
 
             self.clock.update(time - t0)
 
@@ -130,9 +134,23 @@ class Collision:
 
         return x_collide and y_collide
 
+    def penetrate(self):
+        x_penetrate = True if self.center_dist.x - self.width_sum / 2 < -1 else False
+        y_penetrate = True if self.center_dist.y - self.height_sum / 2 < -1 else False
+
+        return x_penetrate and y_penetrate
+
 
 class Motion:
     def __init__(self, p1, p2):
+        self.p1 = p1
+        self.p2 = p2
+        self.hitboxes = Collision(self.p1.hitbox, self.p2.hitbox)
+        self.p1_x0 = None
+        self.p2_x0 = None
+        self.switching_side = False
+
+    def refresh(self, p1, p2):
         self.p1 = p1
         self.p2 = p2
         self.hitboxes = Collision(self.p1.hitbox, self.p2.hitbox)
@@ -141,32 +159,54 @@ class Motion:
         return (self.p1.going_right and not self.p1.facing_left and self.p2.going_left) or \
                (self.p1.going_left and self.p1.facing_left and self.p2.going_right)
 
+    def some_jumping(self):
+        return self.p1.jumping or self.p2.jumping
+
     def both_jumping(self):
         return self.p1.jumping and self.p2.jumping
 
-    def separate(self):
-        if self.p1.facing_left:
-            self.p1.right()
-            self.p2.left()
-        else:
-            self.p1.left()
-            self.p2.right()
+    def move_to(self, player, x_position):
+        global get_keys_p1
+        global get_keys_p2
 
-    def collide_verify(self):
+        if player == self.p1:
+            get_keys_p1 = False
+        if player == self.p2:
+            get_keys_p2 = False
+
+        if player.position.x < x_position - 1.2:
+            player.right()
+        elif player.position.x > x_position + 1.2:
+            player.left()
+        else:
+            get_keys_p1 = True
+            get_keys_p2 = True
+            self.switching_side = False
+
+    def switch_side(self):
+        if not self.hitboxes.penetrate() and not self.switching_side:
+            self.p1_x0 = self.p1.position.x
+            self.p2_x0 = self.p2.position.x
+            self.switching_side = True
+        else:
+            self.move_to(self.p1, self.p2_x0)
+            self.move_to(self.p2, self.p1_x0)
+
+    def collide_motion(self):
+        self.refresh(self.p1, self.p2)
         if self.hitboxes.collide():
-            if not self.both_jumping() and not self.both_getting_closer():
-                if self.hitboxes.center_dist.x - self.hitboxes.width_sum / 2 > -10 ** -1:
-                    if self.p1.going_right and not self.p1.facing_left:
-                        self.p2.right()
-                    if self.p1.going_left and self.p1.facing_left:
-                        self.p2.left()
-                    if self.p2.going_right and not self.p2.facing_left:
-                        self.p1.right()
-                    if self.p2.going_left and self.p2.facing_left:
-                        self.p1.left()
-                else:
-                    self.separate()
-            elif self.both_jumping():
+            if not self.both_getting_closer() and not self.hitboxes.penetrate():
+                if self.p1.going_right and not self.p1.facing_left:
+                    self.p2.right()
+                if self.p1.going_left and self.p1.facing_left:
+                    self.p2.left()
+                if self.p2.going_right and not self.p2.facing_left:
+                    self.p1.right()
+                if self.p2.going_left and self.p2.facing_left:
+                    self.p1.left()
+            elif (self.both_getting_closer() and not self.some_jumping()) or self.switching_side:
+                self.switch_side()
+            if self.both_jumping():
                 self.p1.going_left = False
                 self.p1.going_right = False
                 self.p2.going_left = False
