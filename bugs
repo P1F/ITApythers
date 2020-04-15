@@ -1,0 +1,3 @@
+Movimentação:
+  - RIGHT/LEFT + UP (nessa sequência) faz o personagem pular na direção desejada, mas com UP + RIGHT/LEFT (nessa sequência)
+    o personagem fica na mesma posição horizontal.
