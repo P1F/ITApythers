@@ -103,7 +103,7 @@ class FightManager:
             self.clock.update(time - t0)
 
             self.screen.fill((0, 0, 0))
-            #self.screen.blit(background, (0, 0))
+            self.screen.blit(background, (0, 0))
             self.print_me()
             self.screenManager.display_update(self.screen)
 
