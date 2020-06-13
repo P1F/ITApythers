@@ -1,6 +1,9 @@
 import pygame
 import os
+<<<<<<< HEAD
+=======
 from math import hypot
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
 
 
 class Point:
@@ -18,19 +21,30 @@ class Point:
             return False
 
     def __add__(self, other):
+<<<<<<< HEAD
+=======
         assert (isinstance(other, Point) or isinstance(other, Vector) or isinstance(other, tuple))
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
         if isinstance(other, tuple):
             return Point(self.x + other[0], self.y + other[1])
         else:
             return Point(self.x + other.x, self.y + other.y)
 
     def __sub__(self, other):
+<<<<<<< HEAD
+=======
         assert (isinstance(other, Point) or isinstance(other, Vector) or isinstance(other, tuple))
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
         if isinstance(other, tuple):
             return Point(self.x - other[0], self.y - other[1])
         else:
             return Point(self.x - other.x, self.y - other.y)
 
+<<<<<<< HEAD
+
+class SpriteSheetLoader:
+    def __init__(self, file, sprite_width, sprite_height, fullsheet = False):
+=======
     def __mul__(self, other):
         assert (isinstance(other, int))
         return Point(self.x * other, self.y * other)
@@ -97,6 +111,7 @@ class Vector:
 
 class SpriteSheetLoader:
     def __init__(self, file, sprite_width, sprite_height, fullsheet=False):
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
         self.sheet = pygame.image.load(os.path.join(file))
         self.sprite_width = sprite_width
         self.sprite_height = sprite_height
@@ -123,10 +138,17 @@ class SpriteSheetLoader:
             sprite_list.append(sprite_line)
         return sprite_list
 
+<<<<<<< HEAD
+    def testBlankSprite(self, sprite):
+        for i in range(self.sprite_width):
+            for j in range(self.sprite_height):
+                if sprite.get_at((i, j)) != (0, 0, 0, 0):
+=======
     def testBlankSprite(self,sprite):
         for i in range(self.sprite_width):
             for j in range(self.sprite_height):
                 if sprite.get_at((i,j))!=(0,0,0,0):
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
                     return False
         return True
 

@@ -13,7 +13,10 @@ class Text:
         self.sprite = self.convert()
 
     def convert(self):
+<<<<<<< HEAD
+=======
         assert (isinstance(self.string, str))
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
         length = len(self.string)
         sprite = pygame.Surface((15 * (length + 1), 32)).convert_alpha()
         sprite.fill((0, 0, 0, 0))
@@ -29,6 +32,10 @@ class Text:
     def print_me(self, screen, position=Point(0, 0)):
         screen.blit(self.sprite, (self.position + position).value())
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
 class Menu:
     def __init__(self, position, screen, screenManager, soundManager, cursor):
         self.sprites = SpriteSheetLoader('img/Ascii.png', 16, 16).getSpriteList()
@@ -83,6 +90,10 @@ class MenuElt:
     def more(self):
         self.function()
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
 class MainMenu(Menu):
     def __init__(self, screen, screenManager, soundManager, position, background):
         soundManager.play_music('Intro.mp3')
@@ -200,6 +211,10 @@ class CharMenu(Menu):
         self.cursor = pygame.image.load(self.cursorpath).convert_alpha()
         self.selected = False
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
 class CharSelector:
     def __init__(self, screen, screenManager, soundManager, cursor, background):
         self.p1 = CharMenu(screen, screenManager, soundManager, cursor, Point(40, 150), Point(22,22))
@@ -220,6 +235,11 @@ class CharSelector:
                 #pygame.time.wait(2000)
                 luta = fight.FightManager(self.p1.options[self.p1.choice], self.p2.options[self.p2.choice], self.screen, self.screenManager, self.soundManager)
                 luta.mainloop()
+<<<<<<< HEAD
+                self.p1.cancel()
+                self.p2.cancel()
+=======
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
             for event in pygame.event.get():
                 if event.type == QUIT:
                     exit()

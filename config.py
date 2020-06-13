@@ -1,5 +1,9 @@
 import pygame
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
 class Screen:
     def __init__(self):
         print('carregando tela...')
@@ -11,6 +15,10 @@ class Screen:
         self.screen.blit(adjNewScreen, (0, 0))
         pygame.display.update()
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 5c5cb3c39c3c9fdab3d501fdbf0ac8d4d26e03d4
 class SoundPlayer:
     def __init__(self):
         print('carregando SoundPlayer')
