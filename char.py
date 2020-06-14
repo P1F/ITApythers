@@ -222,7 +222,7 @@ class Char:
         if self.hit_animation:
             if time - self.t_anim > 200:
                 self.hit_animation = False
-        # power animation
+        # launch power animation
         if self.power_animation:
             if time - self.t_anim > 100 and self.spritecolumn < 3:
                 self.t_anim = time
@@ -237,6 +237,7 @@ class Char:
         screen.blit(sprite, self.hitbox.get_print_pos(True))
         self.health.print_me(screen)
         self.power_bar.print_me(screen)
+        self.hitbox.print_me(screen)
         if self.superpower.active:
             self.superpower.print_me(screen)
 
@@ -355,7 +356,6 @@ class Hitbox:
             self.is_left_player = False
             other.is_left_player = True
 
-    # retirar no final do jogo
     def print_me(self, screen):
         rect = pygame.Rect(self.x, self.y, self.width, self.height)
         pygame.draw.rect(screen, (255, 0, 0), rect, 1)
@@ -369,7 +369,7 @@ class SuperPower:
 
     def load(self, is_left_player):
         self.sprites = SpriteSheetLoader('img//superpower.png', 60, 60).getSpriteList()
-        self.spriteline = 0
+        self.spriteline = self.player_idx - 1
         self.spritecolumn = 0
         if is_left_player:
             self.hitbox = Hitbox(30, 25, Point(45, 180), True)
@@ -394,3 +394,5 @@ class SuperPower:
         if not self.hitbox.is_left_player:
             sprite = pygame.transform.flip(sprite, True, False)
         screen.blit(sprite, self.hitbox.get_print_pos(False))
+        self.spritecolumn += 1
+        self.spritecolumn %= 1
