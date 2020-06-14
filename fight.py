@@ -126,6 +126,13 @@ class FightManager:
             self.print_me()
             self.screenManager.display_update(self.screen)
 
+    def round_reset(self):
+        self.p1.set_status(0)
+        self.p2.set_status(0)
+        self.clock.time_left = 90
+        self.p1.health.value = 100
+        self.p2.health.value = 100
+
 
 class Clock:
     def __init__(self):

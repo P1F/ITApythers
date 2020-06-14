@@ -230,6 +230,8 @@ class Char:
             elif self.spritecolumn == 3:
                 self.power_animation = False
 
+    def reset
+
     def print_me(self, screen):
         sprite = self.sprites[self.spriteline][self.spritecolumn]
         if not self.hitbox.is_left_player:
