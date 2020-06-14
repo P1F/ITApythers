@@ -34,14 +34,14 @@ class Char:
         self.icon = CharIcon(rgb, index)
         self.name = name
         self.index = index
+        self.t_anim = 0
         self.velocity = None
 
-        self.jumping = False
-        self.going_left = self.going_right = self.going_up = self.going_down = False
+        self.jumping = self.up_animation = self.down_animation = False
+        self.left_animation = self.right_animation = self.idle_animation = False
         self.punching = self.punch_animation = False
         self.kicking = self.kick_animation = False
 
-        self.last_state = self.actual_state = None
         self.sprites = self.spriteline = self.spritecolumn = None
         self.hitbox = self.health = self.power_bar = self.superpower = None
 
@@ -49,7 +49,6 @@ class Char:
         self.sprites = SpriteSheetLoader('personagens//' + str(self.index) + '//sprites.png', 120, 100).getSpriteList()
         self.spriteline = 0
         self.spritecolumn = 0
-        self.last_state = self.actual_state = 0
         if is_left_player:
             self.hitbox = Hitbox(30, 40, Point(45, 200), True)
         else:
@@ -61,36 +60,47 @@ class Char:
 
     def set_state(self, state):
         if state == 0:  # idle
-            self.jumping = self.going_left = self.going_right = self.going_up = self.going_down = False
+            self.idle_animation = True
+            self.jumping = self.left_animation = self.right_animation = self.up_animation = self.down_animation = False
         elif state == 1:  # left
-            self.going_left = True
-            self.jumping = self.going_right = self.going_up = self.going_down = False
+            self.left_animation = True
+            self.jumping = self.right_animation = self.up_animation = self.down_animation = self.idle_animation = False
         elif state == 2:  # right
-            self.going_right = True
-            self.jumping = self.going_left = self.going_up = self.going_down = False
+            self.right_animation = True
+            self.jumping = self.left_animation = self.up_animation = self.down_animation = self.idle_animation = False
         elif state == 3:  # jumping
             self.jumping = True
-            self.going_left = self.going_right = self.going_up = self.going_down = False
-        if self.actual_state == 3:
-            self.last_state = self.actual_state
-        if self.last_state == state:
-            return
-        self.last_state = self.actual_state
-        self.actual_state = state
+            self.left_animation = self.right_animation = self.up_animation = self.down_animation = self.idle_animation = False
+
+    def idle(self):
+        self.spriteline = 0
+        if not self.idle_animation:
+            self.spritecolumn = 0
 
     def right(self, other):
+        self.spriteline = 1
+        if not self.right_animation:
+            self.spritecolumn = 0
         self.velocity = 0.2
         self.hitbox.x += self.velocity
         if self.hitbox.x + self.hitbox.width > 320 or collide(self.hitbox, other):
             self.hitbox.x -= self.velocity
 
     def left(self, other):
+        self.spriteline = 1
+        if not self.left_animation:
+            self.spritecolumn = 0
         self.velocity = -0.2
         self.hitbox.x += self.velocity
         if self.hitbox.x < 0 or collide(self.hitbox, other):
             self.hitbox.x -= self.velocity
 
     def jump(self, delta, other):
+        self.spritecolumn = 0
+        if self.up_animation and not self.down_animation:
+            self.spriteline = 6
+        elif self.down_animation:
+            self.spriteline = 7
         deltah = 0.40 * delta - 0.0004 * delta * delta
         if deltah < 0:
             self.jumping = False
@@ -103,9 +113,9 @@ class Char:
                     self.hitbox.x = other.x + other.width + 1
             return
         self.hitbox.y = self.hitbox.ground - deltah
-        self.going_up = True
+        self.up_animation = True
         if self.hitbox.y < 102:
-            self.going_down = True
+            self.down_animation = True
         if self.velocity != 0 and (self.hitbox.x + self.hitbox.width <= 320) and self.hitbox.x >= 0:
             self.hitbox.x += self.velocity
 
@@ -169,24 +179,11 @@ class Char:
         else:
             self.spriteline = 19
 
-    def set_anim(self, time):
-        # not considering combat moves
-        if self.last_state == self.actual_state:
-            if time > 100:
-                line_len = len(self.sprites[self.spriteline])
-                self.spritecolumn += 1
-                self.spritecolumn %= line_len
-            return
-        self.spritecolumn = 0
-        if self.actual_state == 0:  # idle
-            self.spriteline = 0
-        if self.actual_state == 1 or self.actual_state == 2:  # walking
-            self.spriteline = 1
-        if self.actual_state == 3:  # jumping
-            if self.going_up and not self.going_down:
-                self.spriteline = 6
-            elif self.going_down:
-                self.spriteline = 7
+    def refresh_animation(self, time):
+        if time - self.t_anim > 100:
+            self.t_anim = time
+            self.spritecolumn += 1
+            self.spritecolumn %= len(self.sprites[self.spriteline])
 
     def print_me(self, screen):
         sprite = self.sprites[self.spriteline][self.spritecolumn]

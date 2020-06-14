@@ -4,6 +4,9 @@ from pygame.locals import *
 from game import Point
 import menu
 
+# time = 0
+# t1jump = t1kick = t1punch = t1left = t1right = t1idle = 0
+# t2jump = t2kick = t2punch = t2left = t2right = t2idle = 0
 
 class FightManager:
     def __init__(self, p1, p2, screen, screenManager, soundManager):
@@ -33,12 +36,13 @@ class FightManager:
                 self.p1.velocity = 0
                 if not (keys[K_d] and keys[K_a]):
                     self.p1.set_state(0)
+                    self.p1.idle()
                 if keys[K_a]:
-                    self.p1.left(self.p2.hitbox)
                     self.p1.set_state(1)
+                    self.p1.left(self.p2.hitbox)
                 if keys[K_d]:
-                    self.p1.right(self.p2.hitbox)
                     self.p1.set_state(2)
+                    self.p1.right(self.p2.hitbox)
             if keys[K_w]:
                 if not self.p1.jumping:
                     self.p1.set_state(3)
@@ -59,12 +63,13 @@ class FightManager:
                 self.p2.velocity = 0
                 if not (keys[K_RIGHT] and keys[K_LEFT]):
                     self.p2.set_state(0)
+                    self.p2.idle()
                 if keys[K_LEFT]:
-                    self.p2.left(self.p1.hitbox)
                     self.p2.set_state(1)
+                    self.p2.left(self.p1.hitbox)
                 if keys[K_RIGHT]:
-                    self.p2.right(self.p1.hitbox)
                     self.p2.set_state(2)
+                    self.p2.right(self.p1.hitbox)
             if keys[K_UP]:
                 if not self.p2.jumping:
                     self.p2.set_state(3)
@@ -107,9 +112,8 @@ class FightManager:
                 self.p2.kick(time - t2kick, self.p1)
             if self.p2.superpower.active:
                 self.p2.superpower.launch(self.p2, self.p1, 20)
-
-            self.p1.set_anim(time)
-            self.p2.set_anim(time)
+            self.p1.refresh_animation(time)
+            self.p2.refresh_animation(time)
 
             self.clock.update(time - t0)
 
