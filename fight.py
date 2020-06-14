@@ -20,6 +20,8 @@ class FightManager:
         self.soundManager = soundManager
         self.p1_victories = 0
         self.p2_victories = 0
+        self.p1_wins = None
+        self.p2_wins = None
         self.t0 = None
 
     def getRandBackground(self):
@@ -129,6 +131,16 @@ class FightManager:
             self.print_me()
             self.screenManager.display_update(self.screen)
             self.round_status()
+            if self.p1_wins or self.p2_wins:
+                return 0
+
+    def fight_status(self):
+        if self.p1_victories > self.p2_victories and self.p1_victories == 2:
+            self.p1_wins = True
+            self.p2_wins = False
+        elif self.p2_victories > self.p1_victories and self.p2_victories == 2:
+            self.p1_wins = False
+            self.p2_wins = True
 
     def round_status(self):
         if self.p1.health.value == 0:
@@ -143,12 +155,12 @@ class FightManager:
             elif self.p2.health.value > self.p1.health.value:
                 self.p2_victories += 1
             self.round_reset()
+        self.fight_status()
 
     def round_reset(self):
         self.p1.reset(True)
         self.p2.reset(False)
         self.t0 = pygame.time.get_ticks()
-        t1punch = t2punch = t1kick = t2kick = t1jump = t2jump = 0
 
 
 class Clock:
