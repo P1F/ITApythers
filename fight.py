@@ -31,13 +31,17 @@ class FightManager:
             keys = pygame.key.get_pressed()
             if not self.p1.jumping:
                 self.p1.velocity = 0
-                if keys[K_d]:
-                    self.p1.right(self.p2.hitbox)
+                if not (keys[K_d] and keys[K_a]):
+                    self.p1.set_state(0)
                 if keys[K_a]:
                     self.p1.left(self.p2.hitbox)
+                    self.p1.set_state(1)
+                if keys[K_d]:
+                    self.p1.right(self.p2.hitbox)
+                    self.p1.set_state(2)
             if keys[K_w]:
                 if not self.p1.jumping:
-                    self.p1.jumping = True
+                    self.p1.set_state(3)
                     t1jump = pygame.time.get_ticks()
             if keys[K_e]:
                 if not self.p1.punch_animation:
@@ -53,13 +57,17 @@ class FightManager:
 
             if not self.p2.jumping:
                 self.p2.velocity = 0
-                if keys[K_RIGHT]:
-                    self.p2.right(self.p1.hitbox)
+                if not (keys[K_RIGHT] and keys[K_LEFT]):
+                    self.p2.set_state(0)
                 if keys[K_LEFT]:
                     self.p2.left(self.p1.hitbox)
+                    self.p2.set_state(1)
+                if keys[K_RIGHT]:
+                    self.p2.right(self.p1.hitbox)
+                    self.p2.set_state(2)
             if keys[K_UP]:
                 if not self.p2.jumping:
-                    self.p2.jumping = True
+                    self.p2.set_state(3)
                     t2jump = pygame.time.get_ticks()
             if keys[K_j]:
                 if not self.p2.punch_animation:
@@ -99,6 +107,9 @@ class FightManager:
                 self.p2.kick(time - t2kick, self.p1)
             if self.p2.superpower.active:
                 self.p2.superpower.launch(self.p2, self.p1, 20)
+
+            self.p1.set_anim(time)
+            self.p2.set_anim(time)
 
             self.clock.update(time - t0)
 

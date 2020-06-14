@@ -1,8 +1,15 @@
 import pygame
 from game import SpriteSheetLoader, Point
 
+# STATES
+# IDLE -> 0
+# WALKING LEFT  -> 1
+# WALKING RIGHT -> 2
+# JUMPING -> 3
+
 
 # checks if lines x and y collide, with y >= x
+
 def one_dimension_collide(x0, x1, y0, y1):
     return (y0 <= x0 <= y1) or (y0 <= x1 <= y1)
 
@@ -27,12 +34,14 @@ class Char:
         self.icon = CharIcon(rgb, index)
         self.name = name
         self.index = index
-        self.velocity = 0
+        self.velocity = None
 
         self.jumping = False
+        self.going_left = self.going_right = self.going_up = self.going_down = False
         self.punching = self.punch_animation = False
         self.kicking = self.kick_animation = False
 
+        self.last_state = self.actual_state = None
         self.sprites = self.spriteline = self.spritecolumn = None
         self.hitbox = self.health = self.power_bar = self.superpower = None
 
@@ -40,6 +49,7 @@ class Char:
         self.sprites = SpriteSheetLoader('personagens//' + str(self.index) + '//sprites.png', 120, 100).getSpriteList()
         self.spriteline = 0
         self.spritecolumn = 0
+        self.last_state = self.actual_state = 0
         if is_left_player:
             self.hitbox = Hitbox(30, 40, Point(45, 200), True)
         else:
@@ -48,6 +58,25 @@ class Char:
         self.power_bar = PowerBar(is_left_player)
         self.superpower = SuperPower(self.index)
         self.superpower.load(is_left_player)
+
+    def set_state(self, state):
+        if state == 0:  # idle
+            self.jumping = self.going_left = self.going_right = self.going_up = self.going_down = False
+        elif state == 1:  # left
+            self.going_left = True
+            self.jumping = self.going_right = self.going_up = self.going_down = False
+        elif state == 2:  # right
+            self.going_right = True
+            self.jumping = self.going_left = self.going_up = self.going_down = False
+        elif state == 3:  # jumping
+            self.jumping = True
+            self.going_left = self.going_right = self.going_up = self.going_down = False
+        if self.actual_state == 3:
+            self.last_state = self.actual_state
+        if self.last_state == state:
+            return
+        self.last_state = self.actual_state
+        self.actual_state = state
 
     def right(self, other):
         self.velocity = 0.2
@@ -74,6 +103,9 @@ class Char:
                     self.hitbox.x = other.x + other.width + 1
             return
         self.hitbox.y = self.hitbox.ground - deltah
+        self.going_up = True
+        if self.hitbox.y < 102:
+            self.going_down = True
         if self.velocity != 0 and (self.hitbox.x + self.hitbox.width <= 320) and self.hitbox.x >= 0:
             self.hitbox.x += self.velocity
 
@@ -136,6 +168,25 @@ class Char:
             self.spriteline = 9
         else:
             self.spriteline = 19
+
+    def set_anim(self, time):
+        # not considering combat moves
+        if self.last_state == self.actual_state:
+            if time > 100:
+                line_len = len(self.sprites[self.spriteline])
+                self.spritecolumn += 1
+                self.spritecolumn %= line_len
+            return
+        self.spritecolumn = 0
+        if self.actual_state == 0:  # idle
+            self.spriteline = 0
+        if self.actual_state == 1 or self.actual_state == 2:  # walking
+            self.spriteline = 1
+        if self.actual_state == 3:  # jumping
+            if self.going_up and not self.going_down:
+                self.spriteline = 6
+            elif self.going_down:
+                self.spriteline = 7
 
     def print_me(self, screen):
         sprite = self.sprites[self.spriteline][self.spritecolumn]
@@ -262,6 +313,7 @@ class Hitbox:
             self.is_left_player = False
             other.is_left_player = True
 
+    # retirar no final do jogo
     def print_me(self, screen):
         rect = pygame.Rect(self.x, self.y, self.width, self.height)
         pygame.draw.rect(screen, (255, 0, 0), rect, 1)
