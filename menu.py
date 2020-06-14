@@ -90,7 +90,7 @@ class MainMenu(Menu):
         Menu.__init__(self, position, screen, screenManager, soundManager, 'img/cursor.png')
         self.background = background
         self.addElt(MenuElt('Jogar', self.call_game))
-        self.addElt(MenuElt('Créditos', self.call_credits))
+        self.addElt(MenuElt('Tutorial', self.call_tutorial))
 
     def addElt(self, elt):
         elt.position = self.position + (15, 3+len(self.options)*16)
@@ -101,8 +101,9 @@ class MainMenu(Menu):
         chars = CharSelector(self.screen, self.screenManager, self.soundManager, 'img/selector.png', 'charselect.png')
         chars.mainloop()
 
-    def call_credits(self):
-        print('chamar creditos')
+    def call_tutorial(self):
+        tutorial = Tutorial(self.soundManager, self.screen, self.screenManager)
+        tutorial.mainloop()
 
     def print_me(self):
         cursor_pos = self.position + (3, self.choice * 16)
@@ -219,7 +220,7 @@ class CharSelector:
         background = pygame.image.load('img/Background/' + self.background).convert()
         while True:
             if self.p1.selected and self.p2.selected:
-                #pygame.time.wait(2000)
+                pygame.time.wait(2000)
                 luta = fight.FightManager(self.p1.options[self.p1.choice], self.p2.options[self.p2.choice], self.screen, self.screenManager, self.soundManager)
                 luta.mainloop()
                 self.p1.cancel()
@@ -259,4 +260,26 @@ class CharSelector:
             self.screen.fill((0, 0, 0))
             self.screen.blit(background, (0, 0))
             self.print_me()
+            self.screenManager.display_update(self.screen)
+
+
+class Tutorial:
+    def __init__(self, soundManager, screen, screenManager):
+        self.soundManager = soundManager
+        self.screen = screen
+        self.screenManager = screenManager
+
+    def mainloop(self):
+        background = pygame.image.load('img/Background/Tutorial.png').convert()
+        while True:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    exit()
+                elif event.type == KEYDOWN:
+                    if event.key == K_ESCAPE or event.key == K_BACKSPACE or event.key == K_RETURN:
+                        self.soundManager.play_sound('menucancel.wav')
+                        return 0
+
+            self.screen.fill((0, 0, 0))
+            self.screen.blit(background, (0, 0))
             self.screenManager.display_update(self.screen)
