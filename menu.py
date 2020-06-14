@@ -141,10 +141,10 @@ class CharMenu(Menu):
         self.selectedposition = selectedposition
         self.selected = False
         self.cursorpath = cursor
-        self.addChar(char.Char('Pelá', (0, 100, 0), 1))
-        self.addChar(char.Char('José', (0, 0, 100), 2))
-        self.addChar(char.Char('Mario', (100, 0, 0), 3))
-        self.addChar(char.Char('Luigi', (100, 100, 100), 4))
+        self.addChar(char.Char('Alonso', (0, 100, 0), 1))
+        self.addChar(char.Char('Karla', (0, 0, 100), 2))
+        self.addChar(char.Char('Manga', (100, 0, 0), 3))
+        self.addChar(char.Char('Yano', (100, 100, 100), 4))
 
     def addChar(self, char):
         char.icon.position = self.position + ((len(self.options)%2)*32, int(len(self.options)/2)*24)

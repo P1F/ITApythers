@@ -1,8 +1,19 @@
 import pygame
+import random
 from game import SpriteSheetLoader, Point
 
+# STATES
+# IDLE -> 0
+# WALKING LEFT  -> 1
+# WALKING RIGHT -> 2
+# JUMPING -> 3
+# PUNCHING -> 4
+# KICKING -> 5
+# TAKE HIT -> 6
+# POWER -> 7
 
 # checks if lines x and y collide, with y >= x
+
 def one_dimension_collide(x0, x1, y0, y1):
     return (y0 <= x0 <= y1) or (y0 <= x1 <= y1)
 
@@ -27,11 +38,15 @@ class Char:
         self.icon = CharIcon(rgb, index)
         self.name = name
         self.index = index
-        self.velocity = 0
+        self.t_anim = 0
+        self.velocity = None
 
-        self.jumping = False
+        self.jumping = self.up_animation = self.down_animation = False
+        self.left_animation = self.right_animation = self.idle_animation = False
         self.punching = self.punch_animation = False
         self.kicking = self.kick_animation = False
+        self.hit_animation = False
+        self.power_animation = False
 
         self.sprites = self.spriteline = self.spritecolumn = None
         self.hitbox = self.health = self.power_bar = self.superpower = None
@@ -49,19 +64,61 @@ class Char:
         self.superpower = SuperPower(self.index)
         self.superpower.load(is_left_player)
 
+    def set_state(self, state):
+        if state == 0:      # idle
+            self.idle_animation = True
+            self.jumping = self.left_animation = self.right_animation = self.up_animation = self.down_animation = False
+        elif state == 1:    # left
+            self.left_animation = True
+            self.jumping = self.right_animation = self.up_animation = self.down_animation = self.idle_animation = False
+        elif state == 2:    # right
+            self.right_animation = True
+            self.jumping = self.left_animation = self.up_animation = self.down_animation = self.idle_animation = False
+        elif state == 3:    # jumping
+            self.jumping = True
+            self.left_animation = self.right_animation = self.up_animation = self.down_animation = self.idle_animation = False
+        elif state == 4:    # punching
+            self.punch_animation = self.punching = True
+            self.left_animation = self.right_animation = self.idle_animation = False
+        elif state == 5:    # kicking
+            self.kick_animation = self.kicking = True
+            self.left_animation = self.right_animation = self.idle_animation = False
+        elif state == 6:    # take hit
+            self.hit_animation = True
+            self.left_animation = self.right_animation = self.idle_animation = False
+        elif state == 7:    # launch power
+            self.power_animation = True
+            self.left_animation = self.right_animation = self.idle_animation = False
+
+    def idle(self):
+        self.spriteline = 0
+        if not self.idle_animation:
+            self.spritecolumn = 0
+
     def right(self, other):
+        self.spriteline = 1
+        if not self.right_animation:
+            self.spritecolumn = 0
         self.velocity = 0.2
         self.hitbox.x += self.velocity
         if self.hitbox.x + self.hitbox.width > 320 or collide(self.hitbox, other):
             self.hitbox.x -= self.velocity
 
     def left(self, other):
+        self.spriteline = 1
+        if not self.left_animation:
+            self.spritecolumn = 0
         self.velocity = -0.2
         self.hitbox.x += self.velocity
         if self.hitbox.x < 0 or collide(self.hitbox, other):
             self.hitbox.x -= self.velocity
 
     def jump(self, delta, other):
+        self.spritecolumn = 0
+        if self.up_animation and not self.down_animation:
+            self.spriteline = 6
+        elif self.down_animation:
+            self.spriteline = 7
         deltah = 0.40 * delta - 0.0004 * delta * delta
         if deltah < 0:
             self.jumping = False
@@ -74,17 +131,17 @@ class Char:
                     self.hitbox.x = other.x + other.width + 1
             return
         self.hitbox.y = self.hitbox.ground - deltah
+        self.up_animation = True
+        if self.hitbox.y < 102:
+            self.down_animation = True
         if self.velocity != 0 and (self.hitbox.x + self.hitbox.width <= 320) and self.hitbox.x >= 0:
             self.hitbox.x += self.velocity
 
-    def punch(self, delta, other):
+    def punch(self, other):
         dmg = 5
-        if not self.jumping:
-            self.spriteline = 21
-        else:
-            self.spriteline = 25
-        if delta > 150 and self.punching:
-            self.spritecolumn = 1
+        if self.punching:
+            self.spritecolumn = 0
+            self.t_anim = 0
             if self.hitbox.is_left_player:
                 hitbox = Hitbox(18, 30, Point(self.hitbox.x + self.hitbox.width, self.hitbox.y))
             else:
@@ -93,19 +150,16 @@ class Char:
                 other.take_hit(dmg)
                 self.power_bar.up(dmg, False)
             self.punching = False
-        elif delta > 250:
-            self.spriteline = self.spritecolumn = 0
-            other.spriteline = other.spritecolumn = 0
-            self.punch_animation = False
-
-    def kick(self, delta, other):
-        dmg = 5
         if not self.jumping:
-            self.spriteline = 23
+            self.spriteline = 21
         else:
-            self.spriteline = 28
-        if delta > 150 and self.kicking:
-            self.spritecolumn = 1
+            self.spriteline = 25
+
+    def kick(self, other):
+        dmg = 5
+        if self.kicking:
+            self.spritecolumn = 0
+            self.t_anim = 0
             if self.hitbox.is_left_player:
                 hitbox = Hitbox(18, 30, Point(self.hitbox.x + self.hitbox.width, self.hitbox.y))
             else:
@@ -114,10 +168,10 @@ class Char:
                 other.take_hit(dmg)
                 self.power_bar.up(dmg, False)
             self.kicking = False
-        elif delta > 250:
-            self.spriteline = self.spritecolumn = 0
-            other.spriteline = other.spritecolumn = 0
-            self.kick_animation = False
+        if not self.jumping:
+            self.spriteline = 23
+        else:
+            self.spriteline = 27
 
     def launch_superpower(self, other):
         if self.power_bar.is_ready():
@@ -125,17 +179,56 @@ class Char:
             self.superpower.hitbox.x = self.hitbox.x
             self.superpower.hitbox.y = self.hitbox.y
             self.power_bar.value = 0
-            self.spritecolumn = 1
+            self.set_state(7)
+            self.t_anim = 0
+            self.spritecolumn = 0
             self.spriteline = 33
 
     def take_hit(self, dmg):
         self.health.take_damage(dmg)
         self.power_bar.up(dmg, True)
+        self.set_state(6)
         self.spritecolumn = 0
+        self.t_anim = 0
         if not self.jumping:
-            self.spriteline = 9
+            self.spriteline = random.randint(9,10)
         else:
-            self.spriteline = 19
+            self.spriteline = random.randint(10,11)
+
+    def refresh_movement_animation(self, time):
+        if self.left_animation or self.right_animation or self.idle_animation:
+            if time - self.t_anim > 100:
+                self.t_anim = time
+                self.spritecolumn += 1
+                self.spritecolumn %= len(self.sprites[self.spriteline])
+
+    def refresh_combat_animation(self, time):
+        if self.spritecolumn == 0 and self.t_anim == 0:
+            self.t_anim = time
+        # punch/kick animation
+        if self.punch_animation or self.kick_animation:
+            if not self.jumping:
+                if time - self.t_anim > 50 and self.spritecolumn < 3:
+                    self.t_anim = time
+                    self.spritecolumn += 1
+                elif self.spritecolumn == 3:
+                    self.punch_animation = False
+                    self.kick_animation = False
+            else:
+                if time - self.t_anim > 200:
+                    self.punch_animation = False
+                    self.kick_animation = False
+        # hit animation
+        if self.hit_animation:
+            if time - self.t_anim > 200:
+                self.hit_animation = False
+        # launch power animation
+        if self.power_animation:
+            if time - self.t_anim > 100 and self.spritecolumn < 3:
+                self.t_anim = time
+                self.spritecolumn += 1
+            elif self.spritecolumn == 3:
+                self.power_animation = False
 
     def print_me(self, screen):
         sprite = self.sprites[self.spriteline][self.spritecolumn]
@@ -144,6 +237,7 @@ class Char:
         screen.blit(sprite, self.hitbox.get_print_pos(True))
         self.health.print_me(screen)
         self.power_bar.print_me(screen)
+        self.hitbox.print_me(screen)
         if self.superpower.active:
             self.superpower.print_me(screen)
 
@@ -275,7 +369,7 @@ class SuperPower:
 
     def load(self, is_left_player):
         self.sprites = SpriteSheetLoader('img//superpower.png', 60, 60).getSpriteList()
-        self.spriteline = 0
+        self.spriteline = self.player_idx - 1
         self.spritecolumn = 0
         if is_left_player:
             self.hitbox = Hitbox(30, 25, Point(45, 180), True)
@@ -300,3 +394,5 @@ class SuperPower:
         if not self.hitbox.is_left_player:
             sprite = pygame.transform.flip(sprite, True, False)
         screen.blit(sprite, self.hitbox.get_print_pos(False))
+        self.spritecolumn += 1
+        self.spritecolumn %= 1
