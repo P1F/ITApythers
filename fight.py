@@ -57,7 +57,7 @@ class FightManager:
                     self.p1.set_state(5)
                     t1kick = pygame.time.get_ticks()
             if keys[K_t]:
-                if not self.p1.superpower.active:
+                if not self.p1.superpower.active and not self.p1.jumping:
                     self.p1.set_state(7)
                     self.p1.launch_superpower(self.p2)
 
@@ -85,7 +85,7 @@ class FightManager:
                     self.p2.set_state(5)
                     t2kick = pygame.time.get_ticks()
             if keys[K_l]:
-                if not self.p2.superpower.active:
+                if not self.p2.superpower.active and not self.p2.jumping:
                     self.p2.set_state(7)
                     self.p2.launch_superpower(self.p1)
 
