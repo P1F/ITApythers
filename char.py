@@ -237,7 +237,7 @@ class Char:
         screen.blit(sprite, self.hitbox.get_print_pos(True))
         self.health.print_me(screen)
         self.power_bar.print_me(screen)
-        self.hitbox.print_me(screen)
+        #self.hitbox.print_me(screen)
         if self.superpower.active:
             self.superpower.print_me(screen)
 
@@ -277,9 +277,11 @@ class HealthBar:
             return health_bar_position[0] + health_bar_width - 1, health_bar_position[1]
 
     def take_damage(self, dmg):
-        if self.value > 0:
+        if self.value > dmg:
             self.value -= dmg
             self.damage += dmg
+        else:
+            self.value = 0
 
     def print_me(self, screen):
         health_bar_width = int(140 * self.value / 100)
@@ -311,9 +313,9 @@ class PowerBar:
     def up(self, dmg, hit_taken):
         if self.value < 100:
             if hit_taken:
-                self.value += dmg * 2
+                self.value += dmg/2
             else:
-                self.value += dmg * 4
+                self.value += dmg
         elif self.value > 100:
             self.value = 100
 
@@ -356,9 +358,9 @@ class Hitbox:
             self.is_left_player = False
             other.is_left_player = True
 
-    def print_me(self, screen):
-        rect = pygame.Rect(self.x, self.y, self.width, self.height)
-        pygame.draw.rect(screen, (255, 0, 0), rect, 1)
+    # def print_me(self, screen):
+    #     rect = pygame.Rect(self.x, self.y, self.width, self.height)
+    #     pygame.draw.rect(screen, (255, 0, 0), rect, 1)
 
 
 class SuperPower:
@@ -384,7 +386,7 @@ class SuperPower:
                 self.hitbox.x -= 0.4
         elif collide(self.hitbox, other.hitbox):
             other.take_hit(dmg)
-            player.power_bar.value += dmg*4
+            player.power_bar.value += dmg/2
             self.active = False
         else:
             self.active = False
