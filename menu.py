@@ -270,7 +270,7 @@ class Tutorial:
         self.screenManager = screenManager
 
     def mainloop(self):
-        background = pygame.image.load('img/Background/Tutorial.png').convert()
+        background = pygame.image.load('img/Background/Tutorial.jpeg').convert()
         while True:
             for event in pygame.event.get():
                 if event.type == QUIT:
