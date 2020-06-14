@@ -236,6 +236,7 @@ class Char:
         self.spriteline = 0
         self.spritecolumn = 0
         self.hitbox.y = 200
+        self.hitbox.is_left_player = is_left_player
         if is_left_player:
             self.hitbox.x = 45
         else:
