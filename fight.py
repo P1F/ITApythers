@@ -30,10 +30,10 @@ class FightManager:
     def mainloop(self):
         background = pygame.image.load('img/Background/' + self.getRandBackground()).convert()
         t0 = pygame.time.get_ticks()
-        t1punch = t2punch = t1kick = t2kick = 0
+        t1punch = t2punch = t1kick = t2kick = t1jump = t2jump = 0
         while True:
             keys = pygame.key.get_pressed()
-            if not (self.p1.jumping or self.p1.punch_animation or self.p1.kick_animation or self.p1.hit_animation):
+            if not (self.p1.jumping or self.p1.punch_animation or self.p1.kick_animation or self.p1.hit_animation or self.p1.power_animation):
                 self.p1.velocity = 0
                 if not (keys[K_d] and keys[K_a]):
                     self.p1.set_state(0)
@@ -58,9 +58,10 @@ class FightManager:
                     t1kick = pygame.time.get_ticks()
             if keys[K_t]:
                 if not self.p1.superpower.active:
+                    self.p1.set_state(7)
                     self.p1.launch_superpower(self.p2)
 
-            if not (self.p2.jumping or self.p2.punch_animation or self.p2.kick_animation):
+            if not (self.p2.jumping or self.p2.punch_animation or self.p2.kick_animation or self.p2.hit_animation or self.p2.power_animation):
                 self.p2.velocity = 0
                 if not (keys[K_RIGHT] and keys[K_LEFT]):
                     self.p2.set_state(0)
@@ -85,6 +86,7 @@ class FightManager:
                     t2kick = pygame.time.get_ticks()
             if keys[K_l]:
                 if not self.p2.superpower.active:
+                    self.p2.set_state(7)
                     self.p2.launch_superpower(self.p1)
 
             for event in pygame.event.get():
@@ -96,24 +98,26 @@ class FightManager:
                     exit()
 
             time = pygame.time.get_ticks()
-            self.p1.refresh_movement(time)
-            self.p2.refresh_movement(time)
+            self.p1.refresh_movement_animation(time)
+            self.p2.refresh_movement_animation(time)
             if self.p1.jumping:
                 self.p1.jump(time - t1jump, self.p2.hitbox)
             if self.p1.punch_animation:
-                self.p1.punch(time - t1punch, self.p2)
+                self.p1.punch(self.p2)
             if self.p1.kick_animation:
-                self.p1.kick(time - t1kick, self.p2)
+                self.p1.kick(self.p2)
             if self.p1.superpower.active:
                 self.p1.superpower.launch(self.p1, self.p2, 20)
             if self.p2.jumping:
                 self.p2.jump(time - t2jump, self.p1.hitbox)
             if self.p2.punch_animation:
-                self.p2.punch(time - t2punch, self.p1)
+                self.p2.punch(self.p1)
             if self.p2.kick_animation:
-                self.p2.kick(time - t2kick, self.p1)
+                self.p2.kick(self.p1)
             if self.p2.superpower.active:
                 self.p2.superpower.launch(self.p2, self.p1, 20)
+            self.p1.refresh_combat_animation(time)
+            self.p2.refresh_combat_animation(time)
 
             self.clock.update(time - t0)
 

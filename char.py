@@ -46,6 +46,7 @@ class Char:
         self.punching = self.punch_animation = False
         self.kicking = self.kick_animation = False
         self.hit_animation = False
+        self.power_animation = False
 
         self.sprites = self.spriteline = self.spritecolumn = None
         self.hitbox = self.health = self.power_bar = self.superpower = None
@@ -84,6 +85,9 @@ class Char:
             self.left_animation = self.right_animation = self.idle_animation = False
         elif state == 6:    # take hit
             self.hit_animation = True
+            self.left_animation = self.right_animation = self.idle_animation = False
+        elif state == 7:    # launch power
+            self.power_animation = True
             self.left_animation = self.right_animation = self.idle_animation = False
 
     def idle(self):
@@ -133,7 +137,7 @@ class Char:
         if self.velocity != 0 and (self.hitbox.x + self.hitbox.width <= 320) and self.hitbox.x >= 0:
             self.hitbox.x += self.velocity
 
-    def punch(self, delta, other):
+    def punch(self, other):
         dmg = 5
         if self.punching:
             self.spritecolumn = 0
@@ -148,19 +152,10 @@ class Char:
             self.punching = False
         if not self.jumping:
             self.spriteline = 21
-            if delta - self.t_anim > 75 and self.spritecolumn < 3:
-                self.t_anim = delta
-                self.spritecolumn += 1
-            elif self.spritecolumn == 3:
-                self.punch_animation = False
-                other.hit_animation = False
         else:
             self.spriteline = 25
-            if delta > 250:
-                self.punch_animation = False
-                other.hit_animation = False
 
-    def kick(self, delta, other):
+    def kick(self, other):
         dmg = 5
         if self.kicking:
             self.spritecolumn = 0
@@ -175,17 +170,8 @@ class Char:
             self.kicking = False
         if not self.jumping:
             self.spriteline = 23
-            if delta - self.t_anim > 75 and self.spritecolumn < 3:
-                self.t_anim = delta
-                self.spritecolumn += 1
-            elif self.spritecolumn == 3:
-                self.kick_animation = False
-                other.hit_animation = False
         else:
             self.spriteline = 27
-            if delta > 250:
-                self.kick_animation = False
-                other.hit_animation = False
 
     def launch_superpower(self, other):
         if self.power_bar.is_ready():
@@ -193,25 +179,56 @@ class Char:
             self.superpower.hitbox.x = self.hitbox.x
             self.superpower.hitbox.y = self.hitbox.y
             self.power_bar.value = 0
-            self.spritecolumn = 1
+            self.set_state(7)
+            self.t_anim = 0
+            self.spritecolumn = 0
             self.spriteline = 33
 
     def take_hit(self, dmg):
         self.health.take_damage(dmg)
         self.power_bar.up(dmg, True)
+        self.set_state(6)
         self.spritecolumn = 0
-        self.hit_animation = True
+        self.t_anim = 0
         if not self.jumping:
             self.spriteline = random.randint(9,10)
         else:
             self.spriteline = random.randint(10,11)
 
-    def refresh_movement(self, time):
+    def refresh_movement_animation(self, time):
         if self.left_animation or self.right_animation or self.idle_animation:
             if time - self.t_anim > 100:
                 self.t_anim = time
                 self.spritecolumn += 1
                 self.spritecolumn %= len(self.sprites[self.spriteline])
+
+    def refresh_combat_animation(self, time):
+        if self.spritecolumn == 0 and self.t_anim == 0:
+            self.t_anim = time
+        # punch/kick animation
+        if self.punch_animation or self.kick_animation:
+            if not self.jumping:
+                if time - self.t_anim > 50 and self.spritecolumn < 3:
+                    self.t_anim = time
+                    self.spritecolumn += 1
+                elif self.spritecolumn == 3:
+                    self.punch_animation = False
+                    self.kick_animation = False
+            else:
+                if time - self.t_anim > 200:
+                    self.punch_animation = False
+                    self.kick_animation = False
+        # hit animation
+        if self.hit_animation:
+            if time - self.t_anim > 200:
+                self.hit_animation = False
+        # power animation
+        if self.power_animation:
+            if time - self.t_anim > 100 and self.spritecolumn < 3:
+                self.t_anim = time
+                self.spritecolumn += 1
+            elif self.spritecolumn == 3:
+                self.power_animation = False
 
     def print_me(self, screen):
         sprite = self.sprites[self.spriteline][self.spritecolumn]
