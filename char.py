@@ -1,4 +1,5 @@
 import pygame
+import random
 from game import SpriteSheetLoader, Point
 
 # STATES
@@ -6,7 +7,10 @@ from game import SpriteSheetLoader, Point
 # WALKING LEFT  -> 1
 # WALKING RIGHT -> 2
 # JUMPING -> 3
-
+# PUNCHING -> 4
+# KICKING -> 5
+# TAKE HIT -> 6
+# POWER -> 7
 
 # checks if lines x and y collide, with y >= x
 
@@ -41,6 +45,7 @@ class Char:
         self.left_animation = self.right_animation = self.idle_animation = False
         self.punching = self.punch_animation = False
         self.kicking = self.kick_animation = False
+        self.hit_animation = False
 
         self.sprites = self.spriteline = self.spritecolumn = None
         self.hitbox = self.health = self.power_bar = self.superpower = None
@@ -59,18 +64,27 @@ class Char:
         self.superpower.load(is_left_player)
 
     def set_state(self, state):
-        if state == 0:  # idle
+        if state == 0:      # idle
             self.idle_animation = True
             self.jumping = self.left_animation = self.right_animation = self.up_animation = self.down_animation = False
-        elif state == 1:  # left
+        elif state == 1:    # left
             self.left_animation = True
             self.jumping = self.right_animation = self.up_animation = self.down_animation = self.idle_animation = False
-        elif state == 2:  # right
+        elif state == 2:    # right
             self.right_animation = True
             self.jumping = self.left_animation = self.up_animation = self.down_animation = self.idle_animation = False
-        elif state == 3:  # jumping
+        elif state == 3:    # jumping
             self.jumping = True
             self.left_animation = self.right_animation = self.up_animation = self.down_animation = self.idle_animation = False
+        elif state == 4:    # punching
+            self.punch_animation = self.punching = True
+            self.left_animation = self.right_animation = self.idle_animation = False
+        elif state == 5:    # kicking
+            self.kick_animation = self.kicking = True
+            self.left_animation = self.right_animation = self.idle_animation = False
+        elif state == 6:    # take hit
+            self.hit_animation = True
+            self.left_animation = self.right_animation = self.idle_animation = False
 
     def idle(self):
         self.spriteline = 0
@@ -121,12 +135,9 @@ class Char:
 
     def punch(self, delta, other):
         dmg = 5
-        if not self.jumping:
-            self.spriteline = 21
-        else:
-            self.spriteline = 25
-        if delta > 150 and self.punching:
-            self.spritecolumn = 1
+        if self.punching:
+            self.spritecolumn = 0
+            self.t_anim = 0
             if self.hitbox.is_left_player:
                 hitbox = Hitbox(18, 30, Point(self.hitbox.x + self.hitbox.width, self.hitbox.y))
             else:
@@ -135,19 +146,25 @@ class Char:
                 other.take_hit(dmg)
                 self.power_bar.up(dmg, False)
             self.punching = False
-        elif delta > 250:
-            self.spriteline = self.spritecolumn = 0
-            other.spriteline = other.spritecolumn = 0
-            self.punch_animation = False
+        if not self.jumping:
+            self.spriteline = 21
+            if delta - self.t_anim > 75 and self.spritecolumn < 3:
+                self.t_anim = delta
+                self.spritecolumn += 1
+            elif self.spritecolumn == 3:
+                self.punch_animation = False
+                other.hit_animation = False
+        else:
+            self.spriteline = 25
+            if delta > 250:
+                self.punch_animation = False
+                other.hit_animation = False
 
     def kick(self, delta, other):
         dmg = 5
-        if not self.jumping:
-            self.spriteline = 23
-        else:
-            self.spriteline = 28
-        if delta > 150 and self.kicking:
-            self.spritecolumn = 1
+        if self.kicking:
+            self.spritecolumn = 0
+            self.t_anim = 0
             if self.hitbox.is_left_player:
                 hitbox = Hitbox(18, 30, Point(self.hitbox.x + self.hitbox.width, self.hitbox.y))
             else:
@@ -156,10 +173,19 @@ class Char:
                 other.take_hit(dmg)
                 self.power_bar.up(dmg, False)
             self.kicking = False
-        elif delta > 250:
-            self.spriteline = self.spritecolumn = 0
-            other.spriteline = other.spritecolumn = 0
-            self.kick_animation = False
+        if not self.jumping:
+            self.spriteline = 23
+            if delta - self.t_anim > 75 and self.spritecolumn < 3:
+                self.t_anim = delta
+                self.spritecolumn += 1
+            elif self.spritecolumn == 3:
+                self.kick_animation = False
+                other.hit_animation = False
+        else:
+            self.spriteline = 27
+            if delta > 250:
+                self.kick_animation = False
+                other.hit_animation = False
 
     def launch_superpower(self, other):
         if self.power_bar.is_ready():
@@ -174,16 +200,18 @@ class Char:
         self.health.take_damage(dmg)
         self.power_bar.up(dmg, True)
         self.spritecolumn = 0
+        self.hit_animation = True
         if not self.jumping:
-            self.spriteline = 9
+            self.spriteline = random.randint(9,10)
         else:
-            self.spriteline = 19
+            self.spriteline = random.randint(10,11)
 
-    def refresh_animation(self, time):
-        if time - self.t_anim > 100:
-            self.t_anim = time
-            self.spritecolumn += 1
-            self.spritecolumn %= len(self.sprites[self.spriteline])
+    def refresh_movement(self, time):
+        if self.left_animation or self.right_animation or self.idle_animation:
+            if time - self.t_anim > 100:
+                self.t_anim = time
+                self.spritecolumn += 1
+                self.spritecolumn %= len(self.sprites[self.spriteline])
 
     def print_me(self, screen):
         sprite = self.sprites[self.spriteline][self.spritecolumn]
