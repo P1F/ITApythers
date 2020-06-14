@@ -18,6 +18,9 @@ class FightManager:
         self.screen = screen
         self.screenManager = screenManager
         self.soundManager = soundManager
+        self.p1_victories = 0
+        self.p2_victories = 0
+        self.t0 = None
 
     def getRandBackground(self):
         return str(randint(1, 4)) + '.png'
@@ -29,7 +32,7 @@ class FightManager:
 
     def mainloop(self):
         background = pygame.image.load('img/Background/' + self.getRandBackground()).convert()
-        t0 = pygame.time.get_ticks()
+        self.t0 = pygame.time.get_ticks()
         t1punch = t2punch = t1kick = t2kick = t1jump = t2jump = 0
         while True:
             keys = pygame.key.get_pressed()
@@ -119,12 +122,33 @@ class FightManager:
             self.p1.refresh_combat_animation(time)
             self.p2.refresh_combat_animation(time)
 
-            self.clock.update(time - t0)
+            self.clock.update(time - self.t0)
 
             self.screen.fill((0, 0, 0))
             self.screen.blit(background, (0, 0))
             self.print_me()
             self.screenManager.display_update(self.screen)
+            self.round_status()
+
+    def round_status(self):
+        if self.p1.health.value == 0:
+            self.p2_victories += 1
+            self.round_reset()
+        elif self.p2.health.value == 0:
+            self.p1_victories += 1
+            self.round_reset()
+        if self.clock.time_left == 0:
+            if self.p1.health.value > self.p2.health.value:
+                self.p1_victories += 1
+            elif self.p2.health.value > self.p1.health.value:
+                self.p2_victories += 1
+            self.round_reset()
+
+    def round_reset(self):
+        self.p1.reset(True)
+        self.p2.reset(False)
+        self.t0 = pygame.time.get_ticks()
+        t1punch = t2punch = t1kick = t2kick = t1jump = t2jump = 0
 
 
 class Clock:
@@ -135,7 +159,7 @@ class Clock:
 
     def update(self, delta):
         new_time = round(90 - delta/1000)
-        if new_time != self.time_left:
+        if new_time != self.time_left and new_time >= 0:
             self.time_left = new_time
             self.has_changed = True
 

@@ -230,6 +230,21 @@ class Char:
             elif self.spritecolumn == 3:
                 self.power_animation = False
 
+    def reset(self, is_left_player):
+        self.t_anim = 0
+        self.velocity = 0
+        self.spriteline = 0
+        self.spritecolumn = 0
+        self.hitbox.y = 200
+        if is_left_player:
+            self.hitbox.x = 45
+        else:
+            self.hitbox.x = 245
+        self.health.value = 100
+        self.set_state(0)
+        self.punching = self.punch_animation = self.kicking = self.kick_animation = False
+        self.hit_animation = self.power_animation = self.superpower.active = False
+
     def print_me(self, screen):
         sprite = self.sprites[self.spriteline][self.spritecolumn]
         if not self.hitbox.is_left_player:
@@ -396,5 +411,3 @@ class SuperPower:
         if not self.hitbox.is_left_player:
             sprite = pygame.transform.flip(sprite, True, False)
         screen.blit(sprite, self.hitbox.get_print_pos(False))
-        self.spritecolumn += 1
-        self.spritecolumn %= 1
