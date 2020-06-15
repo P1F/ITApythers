@@ -47,6 +47,7 @@ class Char:
         self.kicking = self.kick_animation = False
         self.hit_animation = self.power_animation = False
         self.win_animation = False
+        self.tie = False
 
         self.sprites = self.spriteline = self.spritecolumn = None
         self.hitbox = self.health = self.power_bar = self.superpower = None
@@ -233,13 +234,15 @@ class Char:
     def roundend_animation(self, time):
         if self.spritecolumn == 0 and self.t_anim == 0:
             self.t_anim = time
-        if self.win_animation:
+        if self.win_animation or self.tie:
             self.spriteline = 17
             if time - self.t_anim > 400 and self.spritecolumn < 3:
                 self.t_anim = time
                 self.spritecolumn += 1
             elif self.spritecolumn == 3:
-                self.win_animation = False
+                if time - self.t_anim > 3000:
+                    self.win_animation = False
+                    self.tie = False
         else:
             self.spriteline = 31
 
