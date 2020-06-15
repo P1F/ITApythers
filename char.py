@@ -39,14 +39,15 @@ class Char:
         self.name = name
         self.index = index
         self.t_anim = 0
+        self.anim_cnt = 0
         self.velocity = None
 
         self.jumping = self.up_animation = self.down_animation = False
         self.left_animation = self.right_animation = self.idle_animation = False
         self.punching = self.punch_animation = False
         self.kicking = self.kick_animation = False
-        self.hit_animation = False
-        self.power_animation = False
+        self.hit_animation = self.power_animation = False
+        self.win_animation = False
 
         self.sprites = self.spriteline = self.spritecolumn = None
         self.hitbox = self.health = self.power_bar = self.superpower = None
@@ -230,11 +231,26 @@ class Char:
             elif self.spritecolumn == 3:
                 self.power_animation = False
 
+    def roundend_animation(self):
+        if self.win_animation:
+            self.spriteline = 17
+            if self.spritecolumn < 3:
+                if self.anim_cnt > 1000:
+                    self.spritecolumn += 1
+                    self.anim_cnt = 0
+                else:
+                    self.anim_cnt += 1
+            else:
+                self.win_animation = False
+        else:
+            self.spriteline = 31
+
     def reset(self, is_left_player):
         self.t_anim = 0
         self.velocity = 0
         self.spriteline = 0
         self.spritecolumn = 0
+        self.roundend_animation()
         self.hitbox.y = 200
         self.hitbox.is_left_player = is_left_player
         if is_left_player:
