@@ -39,7 +39,6 @@ class Char:
         self.name = name
         self.index = index
         self.t_anim = 0
-        self.anim_cnt = 0
         self.velocity = None
 
         self.jumping = self.up_animation = self.down_animation = False
@@ -231,16 +230,15 @@ class Char:
             elif self.spritecolumn == 3:
                 self.power_animation = False
 
-    def roundend_animation(self):
+    def roundend_animation(self, time):
+        if self.spritecolumn == 0 and self.t_anim == 0:
+            self.t_anim = time
         if self.win_animation:
             self.spriteline = 17
-            if self.spritecolumn < 3:
-                if self.anim_cnt > 1000:
-                    self.spritecolumn += 1
-                    self.anim_cnt = 0
-                else:
-                    self.anim_cnt += 1
-            else:
+            if time - self.t_anim > 400 and self.spritecolumn < 3:
+                self.t_anim = time
+                self.spritecolumn += 1
+            elif self.spritecolumn == 3:
                 self.win_animation = False
         else:
             self.spriteline = 31
@@ -250,7 +248,6 @@ class Char:
         self.velocity = 0
         self.spriteline = 0
         self.spritecolumn = 0
-        self.roundend_animation()
         self.hitbox.y = 200
         self.hitbox.is_left_player = is_left_player
         if is_left_player:

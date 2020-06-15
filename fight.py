@@ -132,9 +132,21 @@ class FightManager:
                 self.screen.blit(background, (0, 0))
                 self.print_me()
                 self.screenManager.display_update(self.screen)
-            self.round_status()
-            if self.p1_wins or self.p2_wins:
-                return 0
+                self.round_status()
+                if self.p1_wins or self.p2_wins:
+                    return 0
+            else:
+                if self.p1.win_animation or self.p2.win_animation:
+                    time = pygame.time.get_ticks()
+                    self.p1.roundend_animation(time)
+                    self.p2.roundend_animation(time)
+                    self.screen.blit(background, (0, 0))
+                    self.print_me()
+                    self.screenManager.display_update(self.screen)
+                else:
+                    self.round_rollin = True
+                    self.p1.reset(True)
+                    self.p2.reset(False)
 
     def fight_status(self):
         if self.p1_victories > self.p2_victories and self.p1_victories == 2:
@@ -145,29 +157,28 @@ class FightManager:
             self.p2_wins = True
 
     def round_status(self):
-        if self.round_rollin:
-            if self.p1.health.value == 0:
-                self.p2_victories += 1
-                self.round_reset()
-            elif self.p2.health.value == 0:
+        if self.p1.health.value == 0:
+            self.p2_victories += 1
+            self.p2.win_animation = True
+            self.round_reset()
+        elif self.p2.health.value == 0:
+            self.p1_victories += 1
+            self.p1.win_animation = True
+            self.round_reset()
+        if self.clock.time_left == 0:
+            if self.p1.health.value > self.p2.health.value:
                 self.p1_victories += 1
-                self.round_reset()
-            if self.clock.time_left == 0:
-                if self.p1.health.value > self.p2.health.value:
-                    self.p1_victories += 1
-                elif self.p2.health.value > self.p1.health.value:
-                    self.p2_victories += 1
-                self.round_reset()
-        elif self.p1.win_animation or self.p2.win_animation:
-            self.p1.roundend_animation()
-            self.p2.roundend_animation()
-        else:
-            self.round_rollin = True
+                self.p1.win_animation = True
+            elif self.p2.health.value > self.p1.health.value:
+                self.p2_victories += 1
+                self.p2.win_animation = True
+            self.round_reset()
         self.fight_status()
 
     def round_reset(self):
-        self.p1.reset(True)
-        self.p2.reset(False)
+        self.round_rollin = False
+        self.p1.spritecolumn = 0
+        self.p2.spritecolumn = 0
         self.t0 = pygame.time.get_ticks()
 
 
